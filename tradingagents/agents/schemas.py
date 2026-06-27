@@ -339,3 +339,99 @@ def render_sentiment_report(report: SentimentReport) -> str:
         "",
         report.narrative,
     ])
+
+
+# ---------------------------------------------------------------------------
+# Plain-English Briefing
+# ---------------------------------------------------------------------------
+
+
+class PlainEnglishBriefing(BaseModel):
+    """Plain-English summary of an entire run, written for a non-expert reader.
+
+    Every other report in the system is written for finance professionals and
+    is dense with jargon (RSI, MACD, "Overweight", alpha, sentiment bands). This
+    schema captures the same conclusion in everyday language so someone with no
+    trading background can understand what the firm decided, why, and what could
+    go wrong. It adds no new facts: the writer synthesises the existing analyst,
+    research, trader, and portfolio-manager outputs already in state.
+    """
+
+    headline: str = Field(
+        description=(
+            "A single plain-English sentence that states the bottom-line verdict, "
+            "as a newspaper headline would. No jargon."
+        ),
+    )
+    recommendation: str = Field(
+        description=(
+            "What an ordinary investor should consider doing, in plain words. "
+            "Translate the professional rating (Buy / Overweight / Hold / "
+            "Underweight / Sell) into everyday language, e.g. Overweight -> "
+            "'lean toward buying a bit more than usual'. State the rating in "
+            "parentheses for reference."
+        ),
+    )
+    what_it_is: str = Field(
+        description=(
+            "A short, plain explanation of the company or asset and the current "
+            "situation, so a reader who has never heard of it can follow along."
+        ),
+    )
+    why: str = Field(
+        description=(
+            "The main reasons behind the recommendation, in everyday language. "
+            "Use short bullet points (one per line, starting with '- '). Define "
+            "any unavoidable technical term in plain words the first time it appears."
+        ),
+    )
+    what_could_go_wrong: str = Field(
+        description=(
+            "The key risks and what would make this view wrong, in plain words. "
+            "Use short bullet points (one per line, starting with '- ')."
+        ),
+    )
+    bottom_line: str = Field(
+        description=(
+            "A closing, reassuring-but-honest takeaway in one or two plain sentences "
+            "that a non-expert can remember."
+        ),
+    )
+    confidence: Literal["low", "medium", "high"] | None = Field(
+        default=None,
+        description="Optional overall confidence in this view: low, medium, or high.",
+    )
+    time_horizon: str | None = Field(
+        default=None,
+        description="Optional plain-language time frame, e.g. 'the next few months'.",
+    )
+
+
+def render_plain_english_briefing(briefing: PlainEnglishBriefing) -> str:
+    """Render a PlainEnglishBriefing to markdown for display, saved reports, and the CLI."""
+    parts = [
+        f"**{briefing.headline}**",
+        "",
+        "### What we suggest",
+        briefing.recommendation,
+        "",
+        "### What this is",
+        briefing.what_it_is,
+        "",
+        "### Why",
+        briefing.why,
+        "",
+        "### What could go wrong",
+        briefing.what_could_go_wrong,
+        "",
+        "### Bottom line",
+        briefing.bottom_line,
+    ]
+    footer = []
+    if briefing.confidence:
+        footer.append(f"**Confidence:** {briefing.confidence.capitalize()}")
+    if briefing.time_horizon:
+        footer.append(f"**Time frame:** {briefing.time_horizon}")
+    if footer:
+        parts.extend(["", "---", " · ".join(footer)])
+    return "\n".join(parts)

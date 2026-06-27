@@ -34,6 +34,26 @@ def test_write_report_tree_creates_files(tmp_path):
 
 
 @pytest.mark.unit
+def test_plain_english_briefing_leads_report(tmp_path):
+    state = _state()
+    state["plain_english_report"] = "PLAIN BRIEFING"
+    out = write_report_tree(state, "AAPL", tmp_path)
+    # Standalone file written at the report root.
+    assert (tmp_path / "plain_english_briefing.md").read_text() == "PLAIN BRIEFING"
+    complete = out.read_text()
+    # Briefing leads the consolidated report, ahead of the analyst section.
+    assert "Plain-English Briefing (Start Here)" in complete
+    assert complete.index("PLAIN BRIEFING") < complete.index("I. Analyst Team Reports")
+
+
+@pytest.mark.unit
+def test_no_briefing_keeps_prior_report_shape(tmp_path):
+    out = write_report_tree(_state(), "AAPL", tmp_path)
+    assert not (tmp_path / "plain_english_briefing.md").exists()
+    assert "Plain-English Briefing" not in out.read_text()
+
+
+@pytest.mark.unit
 def test_save_reports_explicit_path(tmp_path):
     # Unbound: with an explicit save_path, the method doesn't touch self/config.
     out = TradingAgentsGraph.save_reports(None, _state(), "AAPL", save_path=tmp_path)

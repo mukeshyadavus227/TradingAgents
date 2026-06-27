@@ -5,6 +5,7 @@ from .analysts.sentiment_analyst import (
     create_sentiment_analyst,
     create_social_media_analyst,  # deprecated alias kept for back-compat
 )
+from .managers.plain_english_writer import create_plain_english_writer
 from .managers.portfolio_manager import create_portfolio_manager
 from .managers.research_manager import create_research_manager
 from .researchers.bear_researcher import create_bear_researcher
@@ -29,6 +30,7 @@ __all__ = [
     "create_neutral_debator",
     "create_news_analyst",
     "create_aggressive_debator",
+    "create_plain_english_writer",
     "create_portfolio_manager",
     "create_conservative_debator",
     "create_sentiment_analyst",
