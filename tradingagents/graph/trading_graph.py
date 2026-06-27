@@ -111,6 +111,9 @@ class TradingAgentsGraph:
             self.deep_thinking_llm,
             self.tool_nodes,
             self.conditional_logic,
+            enable_plain_english_report=self.config.get(
+                "enable_plain_english_report", True
+            ),
         )
 
         self.propagator = Propagator(

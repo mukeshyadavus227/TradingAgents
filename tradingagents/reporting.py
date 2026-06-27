@@ -16,6 +16,16 @@ def write_report_tree(final_state: dict, ticker: str, save_path) -> Path:
     save_path.mkdir(parents=True, exist_ok=True)
     sections = []
 
+    # 0. Plain-English briefing (lead section; written for non-experts).
+    if final_state.get("plain_english_report"):
+        (save_path / "plain_english_briefing.md").write_text(
+            final_state["plain_english_report"], encoding="utf-8"
+        )
+        sections.append(
+            "## Plain-English Briefing (Start Here)\n\n"
+            f"{final_state['plain_english_report']}"
+        )
+
     # 1. Analysts
     analysts_dir = save_path / "1_analysts"
     analyst_parts = []

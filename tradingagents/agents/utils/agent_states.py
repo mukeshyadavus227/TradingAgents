@@ -74,3 +74,6 @@ class AgentState(MessagesState):
     ]
     final_trade_decision: Annotated[str, "Final decision made by the Risk Analysts"]
     past_context: Annotated[str, "Memory log context injected at run start (same-ticker decisions + cross-ticker lessons)"]
+
+    # plain-english briefing step
+    plain_english_report: Annotated[str, "Plain-English briefing of the whole run for non-experts"]

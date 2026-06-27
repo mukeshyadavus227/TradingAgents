@@ -15,6 +15,7 @@ from tradingagents.agents import (
     create_msg_delete,
     create_neutral_debator,
     create_news_analyst,
+    create_plain_english_writer,
     create_portfolio_manager,
     create_research_manager,
     create_sentiment_analyst,
@@ -35,12 +36,14 @@ class GraphSetup:
         deep_thinking_llm: Any,
         tool_nodes: dict[str, ToolNode],
         conditional_logic: ConditionalLogic,
+        enable_plain_english_report: bool = True,
     ):
         """Initialize with required components."""
         self.quick_thinking_llm = quick_thinking_llm
         self.deep_thinking_llm = deep_thinking_llm
         self.tool_nodes = tool_nodes
         self.conditional_logic = conditional_logic
+        self.enable_plain_english_report = enable_plain_english_report
 
     def setup_graph(
         self, selected_analysts=("market", "social", "news", "fundamentals")
@@ -93,6 +96,11 @@ class GraphSetup:
         workflow.add_node("Neutral Analyst", neutral_analyst)
         workflow.add_node("Conservative Analyst", conservative_analyst)
         workflow.add_node("Portfolio Manager", portfolio_manager_node)
+        if self.enable_plain_english_report:
+            workflow.add_node(
+                "Plain English Writer",
+                create_plain_english_writer(self.deep_thinking_llm),
+            )
 
         # Define edges
         # Start with the first analyst
@@ -162,6 +170,12 @@ class GraphSetup:
             },
         )
 
-        workflow.add_edge("Portfolio Manager", END)
+        # Optionally append a plain-English briefing stage that synthesises the
+        # whole run for non-experts before the graph ends.
+        if self.enable_plain_english_report:
+            workflow.add_edge("Portfolio Manager", "Plain English Writer")
+            workflow.add_edge("Plain English Writer", END)
+        else:
+            workflow.add_edge("Portfolio Manager", END)
 
         return workflow

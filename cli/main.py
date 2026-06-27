@@ -88,6 +88,9 @@ class MessageBuffer:
         "investment_plan": (None, "Research Manager"),
         "trader_investment_plan": (None, "Trader"),
         "final_trade_decision": (None, "Portfolio Manager"),
+        # Plain-English briefing is produced after the Portfolio Manager; gate it
+        # on the PM's completion so it counts once its content has streamed in.
+        "plain_english_report": (None, "Portfolio Manager"),
     }
 
     def __init__(self, max_length=100):
@@ -196,6 +199,7 @@ class MessageBuffer:
                 "investment_plan": "Research Team Decision",
                 "trader_investment_plan": "Trading Team Plan",
                 "final_trade_decision": "Portfolio Management Decision",
+                "plain_english_report": "Plain-English Briefing",
             }
             self.current_report = (
                 f"### {section_titles[latest_section]}\n{latest_content}"
@@ -206,6 +210,11 @@ class MessageBuffer:
 
     def _update_final_report(self):
         report_parts = []
+
+        # Plain-English briefing leads the report when present.
+        if self.report_sections.get("plain_english_report"):
+            report_parts.append("## Plain-English Briefing (Start Here)")
+            report_parts.append(f"{self.report_sections['plain_english_report']}")
 
         # Analyst Team Reports - use .get() to handle missing sections
         analyst_sections = ["market_report", "sentiment_report", "news_report", "fundamentals_report"]
@@ -756,6 +765,11 @@ def display_complete_report(final_state):
     """Display the complete analysis report sequentially (avoids truncation)."""
     console.print()
     console.print(Rule("Complete Analysis Report", style="bold green"))
+
+    # Plain-English Briefing (shown first, written for non-experts)
+    if final_state.get("plain_english_report"):
+        console.print(Panel("[bold]Plain-English Briefing (Start Here)[/bold]", border_style="green"))
+        console.print(Panel(Markdown(final_state["plain_english_report"]), title="Plain-English Briefing", border_style="green", padding=(1, 2)))
 
     # I. Analyst Team Reports
     analysts = []
